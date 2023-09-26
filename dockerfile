@@ -9,6 +9,7 @@ ENV POSTGRES_DB=airflow_db
 ENV POSTGRES_USER=airflow_user
 ENV POSTGRES_PASSWORD=airflow_pass
 ENV AIRFLOW__CORE__SQL_ALCHEMY_CONN="postgresql+psycopg2://airflow_user:airflow_pass@localhost/airflow_db"
+ENV LD_LIBRARY_PATH="/opt/oracle/instantclient_19_20"
 
 # Install dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -21,7 +22,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libffi-dev \
     libpq-dev \
     git \
-    python3-dev
+    python3-dev \ 
+    wget \
+    zip \
+    libaio1 \ 
+    unzip
 
 
 # Install Apache Airflow and psycorg2
@@ -49,7 +54,11 @@ RUN service postgresql start && airflow users create \
     --password admin
 # Create an entrypoint script (entrypoint.sh)
 COPY entrypoint.sh /entrypoint.sh
+COPY oracle_client_install.sh /oracle_client_install.sh
+
 RUN chmod +x /entrypoint.sh
+RUN chmod +x /oracle_client_install.sh
+RUN /oracle_client_install.sh
 
 # Expose the web server and postgres ports
 EXPOSE 8080 5432
